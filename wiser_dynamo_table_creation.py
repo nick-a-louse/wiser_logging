@@ -1,7 +1,12 @@
 import boto3
+import os
 
 #------------------ Get DynamoDB Parameters from keyfile ------------------
-with open("dynamo.params", "r") as f:
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.split(script_path)[0]
+
+with open(os.path.join(script_dir, "dynamo.params"), "r") as f:
     data = f.read().split("\n")
 aws_access_key_id = ""
 aws_secret_access_key = ""

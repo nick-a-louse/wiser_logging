@@ -1,10 +1,14 @@
 import urllib.request, urllib.parse, urllib.error
 import json
 import ssl
-
+import os
 #-----------API keys-----------
 
-with open("gmap.params", "r") as f:
+script_path = os.path.abspath(__file__)
+script_dir = os.path.split(script_path)[0]
+#abs_file_path = os.path.join(script_dir, 'gmap.params')
+
+with open(os.path.join(script_dir, 'gmap.params'), "r") as f:
     gmaps = f.read().split("\n")
 google_key = ""
 

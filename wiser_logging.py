@@ -6,9 +6,15 @@ from decimal import Decimal
 from address_lookup import get_coordinates
 from owm import get_station
 import logging
+import os
 
-_LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
+#_LOGGER = logging.getLogger(__name__)
+#_LOGGER.setLevel(logging.DEBUG)
+
+logging.basicConfig(filename='wiser.log', level=logging.DEBUG)
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.split(script_path)[0]
 
 #------------------ Storing the data and time that the script is run ------------------
 
@@ -20,7 +26,7 @@ t = now.strftime("%H:%M")
 
 # To get the wiser hub key, follow the instructions here https://github.com/asantaga/wiserheatingapi
 
-with open("wiser.params", "r") as f:
+with open(os.path.join(script_dir, "wiser.params"), "r") as f:
     data = f.read().split("\n")
 wiserkey = ""
 wiserip = ""
@@ -57,6 +63,7 @@ try:
 
 except json.decoder.JSONDecodeError as ex:
     print("JSON Exception")
+    logging.error('Unable to retrieve Wiser heating files')
 
 #------------------ Retrieve Outside Temperature ------------------
 
@@ -68,7 +75,7 @@ station_id = list()
 # To get the outside temperature, we first need to know where the user is. The below will check for a user's coordinates.
 
 try:
-    with open("coords.params", "r") as c:
+    with open(os.path.join(script_dir, "coords.params"), "r") as c:
         coords = c.read().split("\n")
     for lines in coords:
         line = lines.split("=")
@@ -78,30 +85,29 @@ try:
             coordinates.append(line[1])
     c.close()
     print("\nCoordinates file found:\n    Latitude: " + coordinates[0] + ", Longitude: " + coordinates[1])
+
 # If the coordinates file doesn't exist, or is empty, then it will be created / populated. Needs a Google API account (or to be manually created).
 
 except:
     print("\nNo coordinate file available\n")
+    logging.info('No coordinate file available')
     address = (input('Please enter your address:')).lower()
     coordinates = get_coordinates(address)
-    with open("coords.params", "w") as c:
+    with open(os.path.join(script_dir, "coords.params"), "w") as c:
         c.write("latitude="+str(coordinates [0])+"\nlongitude="+str(coordinates [1]))
         c.close()
     print("\nCoordinates file created\n    Latitude: " + str(coordinates [0]) + ", Longitude: " + str(coordinates [0]))
+    
 
 # Take the coordinates and get the temperature information from Open Weather Maps
-
 
 outside_data_raw = get_station(coordinates)
 
 data["outside_data"] = {'outside_temp': Decimal(outside_data_raw[0]).quantize(Decimal("1.0")),'outside_hum': Decimal(outside_data_raw[1]).quantize(Decimal("1"))} #The boto3 uploader needs the numbers to be converted to a decimal
-#print (outside_data)
-#data["outside_data"] = Decimal(outside_temp_raw).quantize(Decimal("1.0")) # Have to convert the outside temperature from kelvin to centigrad (and from a float to decimal for boto3)
-
 
 #------------------ Get DynamoDB Parameters from keyfile ------------------
 
-with open("dynamo.params", "r") as f:
+with open(os.path.join(script_dir, "dynamo.params"), "r") as f:
     dyndb = f.read().split("\n")
 aws_access_key_id = ""
 aws_secret_access_key = ""
