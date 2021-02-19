@@ -3,7 +3,10 @@ import json
 
 #-----------API keys-----------:
 
-with open("owm.params", "r") as f:
+script_path = os.path.abspath(__file__)
+script_dir = os.path.split(script_path)[0]
+
+with open(os.path.join(script_dir, "owm.params"), "r") as f:
     data = f.read().split("\n")
 
 owm_key = ""
