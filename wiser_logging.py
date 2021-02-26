@@ -11,7 +11,7 @@ import os
 #_LOGGER = logging.getLogger(__name__)
 #_LOGGER.setLevel(logging.DEBUG)
 
-logging.basicConfig(filename='wiser.log', level=logging.DEBUG)
+logging.basicConfig(filename='wiser.log', level=logging.WARNING)
 
 script_path = os.path.abspath(__file__)
 script_dir = os.path.split(script_path)[0]
